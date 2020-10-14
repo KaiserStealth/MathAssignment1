@@ -4,8 +4,8 @@
 PhysicsPlayground::PhysicsPlayground(std::string name)
 	: Scene(name)
 {
-	//No gravity this is a top down scene
-	m_gravity = b2Vec2(0.f, 0.f);
+	//Set gravity to 1000
+	m_gravity = b2Vec2(0.f, -1000.f);
 	m_physicsWorld->SetGravity(m_gravity);
 }
 
@@ -43,24 +43,6 @@ void PhysicsPlayground::InitScene(float windowWidth, float windowHeight)
 		ECS::GetComponent<VerticalScroll>(entity).SetCam(&ECS::GetComponent<Camera>(entity));
 	}
 
-	//Setup new Entity
-	{
-		/*Scene::CreateSprite(m_sceneReg, "HelloWorld.png", 100, 60, 0.5f, vec3(0.f, 0.f, 0.f));*/
-
-		//Creates entity
-		auto entity = ECS::CreateEntity();
-
-		//Add components
-		ECS::AttachComponent<Sprite>(entity);
-		ECS::AttachComponent<Transform>(entity);
-
-		//Set up the components
-		std::string fileName = "HelloWorld.png";
-		ECS::GetComponent<Sprite>(entity).LoadSprite(fileName, 100, 60);
-		ECS::GetComponent<Sprite>(entity).SetTransparency(0.5f);
-		ECS::GetComponent<Transform>(entity).SetPosition(vec3(0.f, 0.f, 0.f));
-	}
-	
 	//Link entity
 	{
 		/*Scene::CreatePhysicsSprite(m_sceneReg, "LinkStandby", 80, 60, 1.f, vec3(0.f, 30.f, 2.f), b2_dynamicBody, 0.f, 0.f, true, true)*/
@@ -181,14 +163,14 @@ void PhysicsPlayground::KeyboardHold()
 		speed *= 7.f;
 	}
 
-	if (Input::GetKey(Key::W))
+	if (Input::GetKey(Key::Space))    //changed  w to spacebar and increased the y value to 100 from 1
 	{
-		vel += b2Vec2(0.f, 1.f);
+		vel += b2Vec2(0.f, 100.f);
 	}
-	if (Input::GetKey(Key::S))
+	/*if (Input::GetKey(Key::S))     dont need this
 	{
 		vel += b2Vec2(0.f, -1.f);
-	}
+	}*/
 
 	if (Input::GetKey(Key::A))
 	{
