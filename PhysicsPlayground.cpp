@@ -1,20 +1,20 @@
 #include "PhysicsPlayground.h"
-#include "Utilities.h"
+#include "Input.h"
 
 PhysicsPlayground::PhysicsPlayground(std::string name)
-	: Scene(name)
+	:Scene(name)
 {
-	//Set gravity to 1000
-	m_gravity = b2Vec2(0.f, -1000.f);
+	//no gravity this is a top down scene
+	m_gravity = b2Vec2(0.f, -500.f);
 	m_physicsWorld->SetGravity(m_gravity);
 }
 
 void PhysicsPlayground::InitScene(float windowWidth, float windowHeight)
 {
-	//Dynamically allocates the register
+	//dynamically allocates the register
 	m_sceneReg = new entt::registry;
 
-	//Attach the register
+	//attach the register
 	ECS::AttachRegister(m_sceneReg);
 
 	//Sets up aspect ratio for the camera
@@ -22,8 +22,6 @@ void PhysicsPlayground::InitScene(float windowWidth, float windowHeight)
 
 	//Setup MainCamera Entity
 	{
-		/*Scene::CreateCamera(m_sceneReg, vec4(-75.f, 75.f, -75.f, 75.f), -100.f, 100.f, windowWidth, windowHeight, true, true);*/
-
 		//Creates Camera entity
 		auto entity = ECS::CreateEntity();
 		ECS::SetIsMainCamera(entity, true);
@@ -36,17 +34,31 @@ void PhysicsPlayground::InitScene(float windowWidth, float windowHeight)
 		vec4 temp = vec4(-75.f, 75.f, -75.f, 75.f);
 		ECS::GetComponent<Camera>(entity).SetOrthoSize(temp);
 		ECS::GetComponent<Camera>(entity).SetWindowSize(vec2(float(windowWidth), float(windowHeight)));
-		ECS::GetComponent<Camera>(entity).Orthographic(aspectRatio, temp.x, temp.y, temp.z, temp.w, -100.f, 100.f);
+		ECS::GetComponent<Camera>(entity).Orthographic(aspectRatio, temp.x, temp.y, temp.z, temp.w, -100.f,100.f);
 
 		//Attaches the camera to vert and horiz scrolls
 		ECS::GetComponent<HorizontalScroll>(entity).SetCam(&ECS::GetComponent<Camera>(entity));
 		ECS::GetComponent<VerticalScroll>(entity).SetCam(&ECS::GetComponent<Camera>(entity));
 	}
 
+	//Setup new Entity
+	{
+		////Creates entity
+		//auto entity = ECS::CreateEntity();
+
+		////Add components
+		//ECS::AttachComponent<Sprite>(entity);
+		//ECS::AttachComponent<Transform>(entity);
+
+		////Set up the components
+		//std::string fileName = "HelloWorld.png";
+		//ECS::GetComponent<Sprite>(entity).LoadSprite(fileName, 100, 60);
+		//ECS::GetComponent<Sprite>(entity).SetTransparency(0.5f);
+		//ECS::GetComponent<Transform>(entity).SetPosition(vec3(0.f, 0.f, 0.f));
+	}
+
 	//Link entity
 	{
-		/*Scene::CreatePhysicsSprite(m_sceneReg, "LinkStandby", 80, 60, 1.f, vec3(0.f, 30.f, 2.f), b2_dynamicBody, 0.f, 0.f, true, true)*/
-
 		auto entity = ECS::CreateEntity();
 		ECS::SetIsMainPlayer(entity, true);
 
@@ -71,7 +83,6 @@ void PhysicsPlayground::InitScene(float windowWidth, float windowHeight)
 		b2BodyDef tempDef;
 		tempDef.type = b2_dynamicBody;
 		tempDef.position.Set(float32(0.f), float32(30.f));
-		tempDef.angle = Transform::ToRadians(45.f);
 
 		tempBody = m_physicsWorld->CreateBody(&tempDef);
 
@@ -90,7 +101,7 @@ void PhysicsPlayground::InitScene(float windowWidth, float windowHeight)
 		ECS::AttachComponent<Transform>(entity);
 		ECS::AttachComponent<PhysicsBody>(entity);
 
-		//Sets up components
+		//Sets up component
 		std::string fileName = "boxSprite.jpg";
 		ECS::GetComponent<Sprite>(entity).LoadSprite(fileName, 20, 20);
 		ECS::GetComponent<Transform>(entity).SetPosition(vec3(-30.f, -20.f, 2.f));
@@ -131,6 +142,7 @@ void PhysicsPlayground::InitScene(float windowWidth, float windowHeight)
 
 		float shrinkX = 0.f;
 		float shrinkY = 0.f;
+
 		b2Body* tempBody;
 		b2BodyDef tempDef;
 		tempDef.type = b2_staticBody;
@@ -139,18 +151,17 @@ void PhysicsPlayground::InitScene(float windowWidth, float windowHeight)
 		tempBody = m_physicsWorld->CreateBody(&tempDef);
 
 		tempPhsBody = PhysicsBody(tempBody, float(tempSpr.GetWidth() - shrinkX), float(tempSpr.GetHeight() - shrinkY), vec2(0.f, 0.f), false);
-
 	}
 
 	ECS::GetComponent<HorizontalScroll>(MainEntities::MainCamera()).SetFocus(&ECS::GetComponent<Transform>(MainEntities::MainPlayer()));
 	ECS::GetComponent<VerticalScroll>(MainEntities::MainCamera()).SetFocus(&ECS::GetComponent<Transform>(MainEntities::MainPlayer()));
+
 }
 
 void PhysicsPlayground::Update()
 {
 	Scene::AdjustScrollOffset();
 }
-
 
 void PhysicsPlayground::KeyboardHold()
 {
@@ -160,21 +171,23 @@ void PhysicsPlayground::KeyboardHold()
 
 	if (Input::GetKey(Key::Shift))
 	{
-		speed *= 7.f;
 	}
 
-	if (Input::GetKey(Key::Space))    //changed  w to spacebar and increased the y value to 100 from 1
+	if (Input::GetKey(Key::Space))
 	{
-		vel += b2Vec2(0.f, 100.f);
+		//vel += b2Vec2(0.f, 100.f);
+		//player.GetBody()->ApplyForceToCenter(b2Vec2(0.f,1000.f), true);
+		ECS::GetComponent<PhysicsBody>(MainEntities::MainPlayer()).PhysicsBody::ApplyForce(vec3(0.f, 1000.f, 0.f));
 	}
-	/*if (Input::GetKey(Key::S))     dont need this
+	/*if (Input::GetKey(Key::S))
 	{
 		vel += b2Vec2(0.f, -1.f);
 	}*/
-
 	if (Input::GetKey(Key::A))
 	{
-		vel += b2Vec2(-1.f, 0.f);
+		vel += b2Vec2(float32(-1 * Timer::deltaTime), 0.f);
+		//speed = (speed * Timer::deltaTime);
+		player.PhysicsBody::SetVelocity((vec3 (-1.f, 0.f, 0.f)* Timer::deltaTime));
 	}
 	if (Input::GetKey(Key::D))
 	{
